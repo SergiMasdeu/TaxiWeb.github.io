@@ -15,7 +15,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // Header scroll transparency effect
     const header = document.getElementById('header');
     window.addEventListener('scroll', () => {
         if (window.scrollY > 50) {
@@ -25,7 +24,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Populate itinerary details & render OpenStreetMap if on itinerary page
+    // Dynamic Itinerary & OpenStreetMap Geocoding
     const urlParams = new URLSearchParams(window.location.search);
     if (document.getElementById('osmMap')) {
         const pickupText = urlParams.get('pickup') || 'Central London';
@@ -38,33 +37,58 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('summaryDate').textContent = dateText;
         document.getElementById('summaryTime').textContent = timeText;
 
-        // Initialize OpenStreetMap via Leaflet (Centered around London coordinates as default)
+        // Initialize Leaflet Map centered in London as default
         const map = L.map('osmMap', { zoomControl: false }).setView([51.5074, -0.1278], 11);
 
-        // Add OpenStreetMap tile layer
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
             maxZoom: 19,
-            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            attribution: '&copy; OpenStreetMap contributors &copy; CARTO',
+            subdomains: 'abcd'
         }).addTo(map);
 
-        // Approximate coordinates for route demonstration (Pickup: Central London, Dropoff: Heathrow)
-        const pickupCoords = [51.5074, -0.1278];
-        const dropoffCoords = [51.4700, -0.4543];
+        // Helper function to fetch coordinates from OpenStreetMap's Nominatim API
+        async function getCoordinates(address) {
+            try {
+                const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}`);
+                const data = await response.json();
+                if (data && data.length > 0) {
+                    return [parseFloat(data[0].lat), parseFloat(data[0].lon)];
+                }
+            } catch (error) {
+                console.error("Geocoding error:", error);
+            }
+            return null; // Fallback handled later
+        }
 
-        // Add markers
-        const pickupMarker = L.marker(pickupCoords).addTo(map).bindPopup(`<b>Pickup:</b> ${pickupText}`);
-        const dropoffMarker = L.marker(dropoffCoords).addTo(map).bindPopup(`<b>Drop-off:</b> ${dropoffText}`);
+        async function updateMapRoute() {
+            // Fetch real coordinates for both inputs concurrently
+            const [pickupCoords, dropoffCoords] = await Promise.all([
+                getCoordinates(pickupText),
+                getCoordinates(dropoffText)
+            ]);
 
-        // Draw line connecting the route
-        const routeLine = L.polyline([pickupCoords, dropoffCoords], {
-            color: '#d4af37',
-            weight: 4,
-            opacity: 0.8,
-            dashArray: '6, 6'
-        }).addTo(map);
+            // Fallback coordinates if location cannot be resolved
+            const finalPickup = pickupCoords || [51.5074, -0.1278]; // Default Central London
+            const finalDropoff = dropoffCoords || [51.4700, -0.4543]; // Default Heathrow
 
-        // Fit map bounds to show both points clearly
-        map.fitBounds(routeLine.getBounds(), { padding: [30, 30] });
+            // Add markers
+            L.marker(finalPickup).addTo(map).bindPopup(`<b>Pickup:</b> ${pickupText}`);
+            L.marker(finalDropoff).addTo(map).bindPopup(`<b>Drop-off:</b> ${dropoffText}`);
+
+            // Draw route line
+            const routeLine = L.polyline([finalPickup, finalDropoff], {
+                color: '#d4af37',
+                weight: 4,
+                opacity: 0.8,
+                dashArray: '6, 6'
+            }).addTo(map);
+
+            // Zoom bounds to fit both points
+            map.fitBounds(routeLine.getBounds(), { padding: [40, 40] });
+            setTimeout(() => map.invalidateSize(), 200);
+        }
+
+        updateMapRoute();
     }
 
     // Tier selection confirmation alerts
