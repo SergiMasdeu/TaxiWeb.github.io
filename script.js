@@ -1,5 +1,4 @@
 document.addEventListener('DOMContentLoaded', () => {
-    // Mobile navigation toggle
     const mobileMenu = document.getElementById('mobileMenu');
     const navLinks = document.getElementById('navLinks');
 
@@ -15,7 +14,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // Header scroll transparency effect
     const header = document.getElementById('header');
     window.addEventListener('scroll', () => {
         if (window.scrollY > 50) {
@@ -25,7 +23,68 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Dynamic Itinerary & OpenStreetMap Geocoding
+    // Google-Maps-Style Autocomplete Helper using Photon (OpenStreetMap)
+    function setupAutocomplete(inputElementId, dropdownElementId) {
+        const input = document.getElementById(inputElementId);
+        const dropdown = document.getElementById(dropdownElementId);
+
+        if (!input || !dropdown) return;
+
+        let debounceTimer;
+
+        input.addEventListener('input', () => {
+            const query = input.value.trim();
+            clearTimeout(debounceTimer);
+
+            if (query.length < 2) {
+                dropdown.style.display = 'none';
+                return;
+            }
+
+            debounceTimer = setTimeout(async () => {
+                try {
+                    const response = await fetch(`https://photon.komoot.io/api/?q=${encodeURIComponent(query)}&limit=5`);
+                    const data = await response.json();
+                    
+                    dropdown.innerHTML = '';
+                    if (data && data.features && data.features.length > 0) {
+                        data.features.forEach(feature => {
+                            const props = feature.properties;
+                            const nameParts = [props.name, props.city, props.state, props.country].filter(Boolean);
+                            const displayName = [...new Set(nameParts)].join(', ');
+
+                            const item = document.createElement('div');
+                            item.className = 'suggestion-item';
+                            item.textContent = displayName;
+                            
+                            item.addEventListener('click', () => {
+                                input.value = displayName;
+                                dropdown.style.display = 'none';
+                            });
+
+                            dropdown.appendChild(item);
+                        });
+                        dropdown.style.display = 'block';
+                    } else {
+                        dropdown.style.display = 'none';
+                    }
+                } catch (error) {
+                    console.error('Autocomplete fetch error:', error);
+                }
+            }, 300);
+        });
+
+        document.addEventListener('click', (e) => {
+            if (!input.contains(e.target) && !dropdown.contains(e.target)) {
+                dropdown.style.display = 'none';
+            }
+        });
+    }
+
+    setupAutocomplete('pickup', 'pickupSuggestions');
+    setupAutocomplete('dropoff', 'dropoffSuggestions');
+
+    // Dynamic Itinerary & OpenStreetMap Rendering via Leaflet
     const urlParams = new URLSearchParams(window.location.search);
     if (document.getElementById('osmMap')) {
         const pickupText = urlParams.get('pickup') || 'Central London';
@@ -38,7 +97,6 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('summaryDate').textContent = dateText;
         document.getElementById('summaryTime').textContent = timeText;
 
-        // Initialize Leaflet Map centered in London as default
         const map = L.map('osmMap', { zoomControl: false }).setView([51.5074, -0.1278], 11);
 
         L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
@@ -47,13 +105,13 @@ document.addEventListener('DOMContentLoaded', () => {
             subdomains: 'abcd'
         }).addTo(map);
 
-        // Helper function to fetch coordinates from OpenStreetMap's Nominatim API
         async function getCoordinates(address) {
             try {
-                const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}`);
+                const response = await fetch(`https://photon.komoot.io/api/?q=${encodeURIComponent(address)}&limit=1`);
                 const data = await response.json();
-                if (data && data.length > 0) {
-                    return [parseFloat(data[0].lat), parseFloat(data[0].lon)];
+                if (data && data.features && data.features.length > 0) {
+                    const coords = data.features[0].geometry.coordinates; // [lon, lat]
+                    return [coords[1], coords[0]]; // Converted to [lat, lon] for Leaflet
                 }
             } catch (error) {
                 console.error("Geocoding error:", error);
@@ -62,21 +120,17 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         async function updateMapRoute() {
-            // Fetch real coordinates for both inputs concurrently
             const [pickupCoords, dropoffCoords] = await Promise.all([
                 getCoordinates(pickupText),
                 getCoordinates(dropoffText)
             ]);
 
-            // Use geocoded coordinates if found, otherwise use sensible independent defaults
-            const finalPickup = pickupCoords || [51.5074, -0.1278]; // Default Central London
-            const finalDropoff = dropoffCoords || [51.5155, -0.0922]; // Default secondary fallback point
+            const finalPickup = pickupCoords || [51.5074, -0.1278]; 
+            const finalDropoff = dropoffCoords || [50.8503, 4.3517]; // Fallback point if lookup fails
 
-            // Add markers with custom addresses
             L.marker(finalPickup).addTo(map).bindPopup(`<b>Pickup:</b> ${pickupText}`);
             L.marker(finalDropoff).addTo(map).bindPopup(`<b>Drop-off:</b> ${dropoffText}`);
 
-            // Draw route line between the two dynamic points
             const routeLine = L.polyline([finalPickup, finalDropoff], {
                 color: '#d4af37',
                 weight: 4,
@@ -84,7 +138,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 dashArray: '6, 6'
             }).addTo(map);
 
-            // Zoom bounds to fit both points dynamically
             map.fitBounds(routeLine.getBounds(), { padding: [40, 40] });
             setTimeout(() => map.invalidateSize(), 200);
         }
@@ -92,7 +145,6 @@ document.addEventListener('DOMContentLoaded', () => {
         updateMapRoute();
     }
 
-    // Tier selection confirmation alerts
     document.querySelectorAll('.select-tier-btn').forEach(btn => {
         btn.addEventListener('click', (e) => {
             const card = e.target.closest('.price-card');

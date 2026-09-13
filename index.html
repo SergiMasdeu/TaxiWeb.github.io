@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Elite Voyage provides premium private transportation, luxury SUVs, executive sedans, and VIP chauffeur services.">
-    <title>Elite Voyage | Private Transportation</title>
+    <meta name="description" content="Elite Voyage provides premium private chauffeur services and luxury vehicle rentals.">
+    <title>Elite Voyage | Premium Private Chauffeur & Transportation</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -16,11 +16,11 @@
             <div class="logo">ELITE<span>VOYAGE</span></div>
             <ul class="nav-links" id="navLinks">
                 <li><a href="index.html">Home</a></li>
-                <li><a href="index.html#services">Services</a></li>
-                <li><a href="index.html#fleet">Fleet</a></li>
+                <li><a href="#services">Services</a></li>
+                <li><a href="#fleet">Fleet</a></li>
                 <li><a href="#contact" class="btn-nav">Book Now</a></li>
             </ul>
-            <div class="menu-toggle" id="mobileMenu" aria-label="Toggle Navigation">
+            <div class="mobile-menu-btn" id="mobileMenu" aria-label="Toggle navigation">
                 <span></span>
                 <span></span>
                 <span></span>
@@ -29,71 +29,27 @@
     </header>
 
     <main>
-        <section class="hero" id="home">
+        <section class="hero">
             <div class="hero-content">
-                <h1>Experience Luxury in <br><span>Every Journey.</span></h1>
-                <p>Premium private transportation tailored for your comfort and safety.</p>
-                <a href="#contact" class="cta-button">Book Your Experience</a>
-            </div>
-        </section>
-
-        <section class="services" id="services">
-            <div class="container">
-                <h2 class="section-title">Our Premium Services</h2>
-                <div class="grid">
-                    <div class="card">
-                        <div class="icon" aria-hidden="true">🚗</div>
-                        <h3>Executive Sedan</h3>
-                        <p>Perfect for corporate travel, airport transfers, and city elegance.</p>
-                    </div>
-                    <div class="card">
-                        <div class="icon" aria-hidden="true">🚐</div>
-                        <h3>Luxury SUV</h3>
-                        <p>Spacious comfort for families, VIPs, and group travel.</p>
-                    </div>
-                    <div class="card">
-                        <div class="icon" aria-hidden="true">💎</div>
-                        <h3>VIP Chauffeur</h3>
-                        <p>Dedicated professional drivers with years of discretion and expertise.</p>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <section class="fleet" id="fleet">
-            <div class="container">
-                <h2 class="section-title">Our Elite Fleet</h2>
-                <div class="gallery">
-                    <div class="item">
-                        <img src="https://images.unsplash.com/photo-1503376809144-008f73ec4e2c?auto=format&fit=crop&w=800&q=80" alt="Executive Sedan">
-                        <div class="overlay">
-                            <h3>Executive Sedan</h3>
-                            <p>Capacity: 4 | Luxury Leather Interior</p>
-                        </div>
-                    </div>
-                    <div class="item">
-                        <img src="https://images.unsplash.com/photo-1533473359385-80685bc271e5?auto=format&fit=crop&w=800&q=80" alt="Grand SUV">
-                        <div class="overlay">
-                            <h3>Grand SUV</h3>
-                            <p>Capacity: 7 | Premium Legroom & Luggage Space</p>
-                        </div>
-                    </div>
-                </div>
+                <h1>Excellence in Motion</h1>
+                <p>Experience world-class luxury transportation tailored to your exact itinerary.</p>
+                <a href="#contact" class="btn-primary">Reserve Your Journey</a>
             </div>
         </section>
 
         <section class="booking-form" id="contact">
             <div class="container">
                 <h2 class="section-title">Reserve Your Ride</h2>
-                <!-- Submits directly to itinerary.html with GET query parameters -->
                 <form action="itinerary.html" method="GET" class="modern-form">
-                    <div class="form-group">
+                    <div class="form-group autocomplete-container">
                         <label for="pickup">Pickup Location</label>
-                        <input type="text" id="pickup" name="pickup" placeholder="Enter city, airport or address" required>
+                        <input type="text" id="pickup" name="pickup" placeholder="Enter city, airport or address" autocomplete="off" required>
+                        <div id="pickupSuggestions" class="suggestions-dropdown"></div>
                     </div>
-                    <div class="form-group">
+                    <div class="form-group autocomplete-container">
                         <label for="dropoff">Drop-off Location</label>
-                        <input type="text" id="dropoff" name="dropoff" placeholder="Destination address" required>
+                        <input type="text" id="dropoff" name="dropoff" placeholder="Destination address" autocomplete="off" required>
+                        <div id="dropoffSuggestions" class="suggestions-dropdown"></div>
                     </div>
                     <div class="grid-2">
                         <div class="form-group">
@@ -107,6 +63,46 @@
                     </div>
                     <button type="submit" class="submit-btn">View Itinerary & Pricing</button>
                 </form>
+            </div>
+        </section>
+
+        <section id="services" class="services">
+            <div class="container">
+                <h2 class="section-title">Our Services</h2>
+                <div class="grid-3">
+                    <div class="service-card">
+                        <h3>Airport Transfers</h3>
+                        <p>Punctual, flight-tracked private pickups and drop-offs at all major international airports.</p>
+                    </div>
+                    <div class="service-card">
+                        <h3>Corporate Travel</h3>
+                        <p>Discrete, reliable executive transport designed for high-profile business schedules.</p>
+                    </div>
+                    <div class="service-card">
+                        <h3>Hourly Chauffeur</h3>
+                        <p>Dedicated personal driver at your disposal for city tours, events, or flexible meetings.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="fleet" class="fleet">
+            <div class="container">
+                <h2 class="section-title">The Fleet</h2>
+                <div class="grid-3">
+                    <div class="fleet-card">
+                        <h4>Executive Sedan</h4>
+                        <p>Mercedes-Benz E-Class</p>
+                    </div>
+                    <div class="fleet-card">
+                        <h4>Grand SUV</h4>
+                        <p>Mercedes-Benz V-Class</p>
+                    </div>
+                    <div class="fleet-card">
+                        <h4>VIP Luxury</h4>
+                        <p>Mercedes-Benz S-Class</p>
+                    </div>
+                </div>
             </div>
         </section>
     </main>
