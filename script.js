@@ -15,6 +15,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
+    // Header scroll transparency effect
     const header = document.getElementById('header');
     window.addEventListener('scroll', () => {
         if (window.scrollY > 50) {
@@ -57,7 +58,7 @@ document.addEventListener('DOMContentLoaded', () => {
             } catch (error) {
                 console.error("Geocoding error:", error);
             }
-            return null; // Fallback handled later
+            return null;
         }
 
         async function updateMapRoute() {
@@ -67,15 +68,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 getCoordinates(dropoffText)
             ]);
 
-            // Fallback coordinates if location cannot be resolved
+            // Use geocoded coordinates if found, otherwise use sensible independent defaults
             const finalPickup = pickupCoords || [51.5074, -0.1278]; // Default Central London
-            const finalDropoff = dropoffCoords || [51.4700, -0.4543]; // Default Heathrow
+            const finalDropoff = dropoffCoords || [51.5155, -0.0922]; // Default secondary fallback point
 
-            // Add markers
+            // Add markers with custom addresses
             L.marker(finalPickup).addTo(map).bindPopup(`<b>Pickup:</b> ${pickupText}`);
             L.marker(finalDropoff).addTo(map).bindPopup(`<b>Drop-off:</b> ${dropoffText}`);
 
-            // Draw route line
+            // Draw route line between the two dynamic points
             const routeLine = L.polyline([finalPickup, finalDropoff], {
                 color: '#d4af37',
                 weight: 4,
@@ -83,7 +84,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 dashArray: '6, 6'
             }).addTo(map);
 
-            // Zoom bounds to fit both points
+            // Zoom bounds to fit both points dynamically
             map.fitBounds(routeLine.getBounds(), { padding: [40, 40] });
             setTimeout(() => map.invalidateSize(), 200);
         }
