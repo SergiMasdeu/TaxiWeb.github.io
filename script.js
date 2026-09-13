@@ -25,18 +25,46 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Populate itinerary details automatically if URL query parameters exist
+    // Populate itinerary details & render OpenStreetMap if on itinerary page
     const urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.has('pickup')) {
-        const pickupElem = document.getElementById('summaryPickup');
-        const dropoffElem = document.getElementById('summaryDropoff');
-        const dateElem = document.getElementById('summaryDate');
-        const timeElem = document.getElementById('summaryTime');
+    if (document.getElementById('osmMap')) {
+        const pickupText = urlParams.get('pickup') || 'Central London';
+        const dropoffText = urlParams.get('dropoff') || 'Heathrow Airport (LHR)';
+        const dateText = urlParams.get('date') || '2026-06-15';
+        const timeText = urlParams.get('time') || '12:00';
 
-        if (pickupElem) pickupElem.textContent = urlParams.get('pickup');
-        if (dropoffElem) dropoffElem.textContent = urlParams.get('dropoff');
-        if (dateElem) dateElem.textContent = urlParams.get('date');
-        if (timeElem) timeElem.textContent = urlParams.get('time');
+        document.getElementById('summaryPickup').textContent = pickupText;
+        document.getElementById('summaryDropoff').textContent = dropoffText;
+        document.getElementById('summaryDate').textContent = dateText;
+        document.getElementById('summaryTime').textContent = timeText;
+
+        // Initialize OpenStreetMap via Leaflet (Centered around London coordinates as default)
+        const map = L.map('osmMap', { zoomControl: false }).setView([51.5074, -0.1278], 11);
+
+        // Add OpenStreetMap tile layer
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(map);
+
+        // Approximate coordinates for route demonstration (Pickup: Central London, Dropoff: Heathrow)
+        const pickupCoords = [51.5074, -0.1278];
+        const dropoffCoords = [51.4700, -0.4543];
+
+        // Add markers
+        const pickupMarker = L.marker(pickupCoords).addTo(map).bindPopup(`<b>Pickup:</b> ${pickupText}`);
+        const dropoffMarker = L.marker(dropoffCoords).addTo(map).bindPopup(`<b>Drop-off:</b> ${dropoffText}`);
+
+        // Draw line connecting the route
+        const routeLine = L.polyline([pickupCoords, dropoffCoords], {
+            color: '#d4af37',
+            weight: 4,
+            opacity: 0.8,
+            dashArray: '6, 6'
+        }).addTo(map);
+
+        // Fit map bounds to show both points clearly
+        map.fitBounds(routeLine.getBounds(), { padding: [30, 30] });
     }
 
     // Tier selection confirmation alerts
