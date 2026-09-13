@@ -23,7 +23,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Google-Maps-Style Autocomplete Helper using Photon API
+    // High-Precision Google-Maps-Style Autocomplete Helper
     function setupAutocomplete(inputElementId, dropdownElementId) {
         const input = document.getElementById(inputElementId);
         const dropdown = document.getElementById(dropdownElementId);
@@ -43,15 +43,23 @@ document.addEventListener('DOMContentLoaded', () => {
 
             debounceTimer = setTimeout(async () => {
                 try {
-                    const response = await fetch(`https://photon.komoot.io/api/?q=${encodeURIComponent(query)}&limit=5`);
+                    const biasLat = 51.5074;
+                    const biasLon = -0.1278;
+                    const endpoint = `https://photon.komoot.io/api/?q=${encodeURIComponent(query)}&lat=${biasLat}&lon=${biasLon}&limit=6`;
+                    
+                    const response = await fetch(endpoint);
                     const data = await response.json();
                     
                     dropdown.innerHTML = '';
                     if (data && data.features && data.features.length > 0) {
                         data.features.forEach(feature => {
                             const props = feature.properties;
-                            const nameParts = [props.name, props.street, props.city, props.state, props.country].filter(Boolean);
-                            const displayName = [...new Set(nameParts)].join(', ');
+                            
+                            const primaryPart = [props.housenumber, props.name, props.street].filter(Boolean).join(' ');
+                            const secondaryPart = [props.city || props.county, props.state, props.country].filter(Boolean);
+                            
+                            const namePieces = [primaryPart, ...secondaryPart];
+                            const displayName = [...new Set(namePieces)].filter(Boolean).join(', ');
 
                             const item = document.createElement('div');
                             item.className = 'suggestion-item';
@@ -72,7 +80,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     console.error('Autocomplete fetch error:', error);
                     dropdown.style.display = 'none';
                 }
-            }, 250);
+            }, 200);
         });
 
         document.addEventListener('click', (e) => {
@@ -84,6 +92,34 @@ document.addEventListener('DOMContentLoaded', () => {
 
     setupAutocomplete('pickup', 'pickupSuggestions');
     setupAutocomplete('dropoff', 'dropoffSuggestions');
+
+    // Helper function to calculate great-circle distance (Haversine formula)
+    function calculateDistanceKm(lat1, lon1, lat2, lon2) {
+        const R = 6371; // Radius of the earth in km
+        const dLat = (lat2 - lat1) * (Math.PI / 180);
+        const dLon = (lon2 - lon1) * (Math.PI / 180);
+        const a =
+            Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+            Math.cos(lat1 * (Math.PI / 180)) * Math.cos(lat2 * (Math.PI / 180)) *
+            Math.sin(dLon / 2) * Math.sin(dLon / 2);
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        const straightLineKm = R * c;
+        // Multiply by 1.2 road deviation factor to approximate real driving distance
+        return straightLineKm * 1.2;
+    }
+
+    // Format hours and minutes from total distance (assuming average speed ~55 km/h accounting for city traffic)
+    function formatDuration(distanceKm) {
+        const avgSpeedKmh = 50; 
+        const totalHours = distanceKm / avgSpeedKmh;
+        const hours = Math.floor(totalHours);
+        const minutes = Math.round((totalHours - hours) * 60);
+
+        if (hours === 0) {
+            return `${Math.max(minutes, 5)} mins`;
+        }
+        return `${hours} hr ${minutes} mins`;
+    }
 
     // Dynamic Itinerary & OpenStreetMap Rendering via Leaflet
     const urlParams = new URLSearchParams(window.location.search);
@@ -128,6 +164,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const finalPickup = pickupCoords || [51.5074, -0.1278]; 
             const finalDropoff = dropoffCoords || [50.8503, 4.3517]; 
+
+            // Calculate distance & time values
+            const distanceKm = calculateDistanceKm(finalPickup[0], finalPickup[1], finalDropoff[0], finalDropoff[1]);
+            const durationText = formatDuration(distanceKm);
+
+            // Update UI elements on itinerary page
+            document.getElementById('summaryDistance').textContent = `${distanceKm.toFixed(1)} km`;
+            document.getElementById('summaryDuration').textContent = durationText;
 
             L.marker(finalPickup).addTo(map).bindPopup(`<b>Pickup:</b> ${pickupText}`);
             L.marker(finalDropoff).addTo(map).bindPopup(`<b>Drop-off:</b> ${dropoffText}`);
