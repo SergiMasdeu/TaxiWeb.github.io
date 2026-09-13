@@ -23,7 +23,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Google-Maps-Style Autocomplete Helper using Photon (OpenStreetMap)
+    // Google-Maps-Style Autocomplete Helper using Photon API
     function setupAutocomplete(inputElementId, dropdownElementId) {
         const input = document.getElementById(inputElementId);
         const dropdown = document.getElementById(dropdownElementId);
@@ -50,7 +50,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (data && data.features && data.features.length > 0) {
                         data.features.forEach(feature => {
                             const props = feature.properties;
-                            const nameParts = [props.name, props.city, props.state, props.country].filter(Boolean);
+                            const nameParts = [props.name, props.street, props.city, props.state, props.country].filter(Boolean);
                             const displayName = [...new Set(nameParts)].join(', ');
 
                             const item = document.createElement('div');
@@ -70,8 +70,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 } catch (error) {
                     console.error('Autocomplete fetch error:', error);
+                    dropdown.style.display = 'none';
                 }
-            }, 300);
+            }, 250);
         });
 
         document.addEventListener('click', (e) => {
@@ -126,7 +127,7 @@ document.addEventListener('DOMContentLoaded', () => {
             ]);
 
             const finalPickup = pickupCoords || [51.5074, -0.1278]; 
-            const finalDropoff = dropoffCoords || [50.8503, 4.3517]; // Fallback point if lookup fails
+            const finalDropoff = dropoffCoords || [50.8503, 4.3517]; 
 
             L.marker(finalPickup).addTo(map).bindPopup(`<b>Pickup:</b> ${pickupText}`);
             L.marker(finalDropoff).addTo(map).bindPopup(`<b>Drop-off:</b> ${dropoffText}`);
