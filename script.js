@@ -95,7 +95,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Helper function to calculate great-circle distance (Haversine formula)
     function calculateDistanceKm(lat1, lon1, lat2, lon2) {
-        const R = 6371; // Radius of the earth in km
+        const R = 6371; // Earth radius in km
         const dLat = (lat2 - lat1) * (Math.PI / 180);
         const dLon = (lon2 - lon1) * (Math.PI / 180);
         const a =
@@ -104,13 +104,18 @@ document.addEventListener('DOMContentLoaded', () => {
             Math.sin(dLon / 2) * Math.sin(dLon / 2);
         const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
         const straightLineKm = R * c;
-        // Multiply by 1.2 road deviation factor to approximate real driving distance
-        return straightLineKm * 1.2;
+        return straightLineKm * 1.2; // Road factor adjustment
     }
 
-    // Format hours and minutes from total distance (assuming average speed ~55 km/h accounting for city traffic)
+    // Format hours and minutes with dynamic speed scaling based on trip distance
     function formatDuration(distanceKm) {
-        const avgSpeedKmh = 50; 
+        let avgSpeedKmh = 50; 
+        if (distanceKm > 500) {
+            avgSpeedKmh = 95; 
+        } else if (distanceKm > 150) {
+            avgSpeedKmh = 75; 
+        }
+
         const totalHours = distanceKm / avgSpeedKmh;
         const hours = Math.floor(totalHours);
         const minutes = Math.round((totalHours - hours) * 60);
@@ -125,7 +130,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const urlParams = new URLSearchParams(window.location.search);
     if (document.getElementById('osmMap')) {
         const pickupText = urlParams.get('pickup') || 'Central London';
-        const dropoffText = urlParams.get('dropoff') || 'Heathrow Airport (LHR)';
+        const dropoffText = urlParams.get('dropoff') || 'Heathrow Airport, London';
         const dateText = urlParams.get('date') || '2026-06-15';
         const timeText = urlParams.get('time') || '12:00';
 
@@ -148,7 +153,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const data = await response.json();
                 if (data && data.features && data.features.length > 0) {
                     const coords = data.features[0].geometry.coordinates; // [lon, lat]
-                    return [coords[1], coords[0]]; // Converted to [lat, lon] for Leaflet
+                    return [coords[1], coords[0]]; 
                 }
             } catch (error) {
                 console.error("Geocoding error:", error);
@@ -157,22 +162,47 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         async function updateMapRoute() {
-            const [pickupCoords, dropoffCoords] = await Promise.all([
-                getCoordinates(pickupText),
-                getCoordinates(dropoffText)
-            ]);
+            let pickupCoords = await getCoordinates(pickupText);
+            let dropoffCoords = await getCoordinates(dropoffText);
 
-            const finalPickup = pickupCoords || [51.5074, -0.1278]; 
-            const finalDropoff = dropoffCoords || [50.8503, 4.3517]; 
+            const defaultPickup = [51.5074, -0.1278];   
+            const defaultDropoff = [51.4700, -0.4543];  
+
+            const finalPickup = pickupCoords || defaultPickup; 
+            const finalDropoff = dropoffCoords || defaultDropoff; 
 
             // Calculate distance & time values
             const distanceKm = calculateDistanceKm(finalPickup[0], finalPickup[1], finalDropoff[0], finalDropoff[1]);
             const durationText = formatDuration(distanceKm);
 
-            // Update UI elements on itinerary page
+            // Compute dynamic prices in Euros (€10 base charge + rate per km)
+            const baseFee = 10;
+            const sedanPrice = Math.round(baseFee + (distanceKm * 2.0));
+            const suvPrice = Math.round(baseFee + (distanceKm * 2.5));
+            const vipPrice = Math.round(baseFee + (distanceKm * 4.0));
+
+            // Update UI elements
             document.getElementById('summaryDistance').textContent = `${distanceKm.toFixed(1)} km`;
             document.getElementById('summaryDuration').textContent = durationText;
 
+            const sedanCard = document.querySelector('[data-tier="Executive Sedan"]');
+            const suvCard = document.querySelector('[data-tier="Grand SUV"]');
+            const vipCard = document.querySelector('[data-tier="VIP Chauffeur"]');
+
+            if (sedanCard) {
+                sedanCard.setAttribute('data-price', `€${sedanPrice}`);
+                document.getElementById('priceSedanTag').textContent = `€${sedanPrice}`;
+            }
+            if (suvCard) {
+                suvCard.setAttribute('data-price', `€${suvPrice}`);
+                document.getElementById('priceSuvTag').textContent = `€${suvPrice}`;
+            }
+            if (vipCard) {
+                vipCard.setAttribute('data-price', `€${vipPrice}`);
+                document.getElementById('priceVipTag').textContent = `€${vipPrice}`;
+            }
+
+            // Render map elements
             L.marker(finalPickup).addTo(map).bindPopup(`<b>Pickup:</b> ${pickupText}`);
             L.marker(finalDropoff).addTo(map).bindPopup(`<b>Drop-off:</b> ${dropoffText}`);
 
