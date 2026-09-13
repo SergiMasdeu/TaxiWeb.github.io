@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Review your Elite Voyage travel itinerary and select your preferred vehicle tier.">
+    <title>Journey Itinerary & Pricing | Elite Voyage</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="index.css">
+</head>
+<body>
+    <header id="header" class="scrolled">
+        <nav class="navbar" aria-label="Main Navigation">
+            <div class="logo">ELITE<span>VOYAGE</span></div>
+            <ul class="nav-links" id="navLinks">
+                <li><a href="index.html">Home</a></li>
+                <li><a href="index.html#services">Services</a></li>
+                <li><a href="index.html#fleet">Fleet</a></li>
+                <li><a href="index.html#contact" class="btn-nav">Book Now</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+        <div class="itinerary-page">
+            <div class="container">
+                <div class="itinerary-header">
+                    <a href="index.html#contact" class="back-btn">&larr; Modify Booking</a>
+                    <h2 class="section-title" style="margin-bottom: 10px;">Your Journey Itinerary</h2>
+                    <p class="subtitle">Review your customized route, schedule, and select your preferred vehicle tier.</p>
+                </div>
+
+                <div class="itinerary-grid">
+                    <div class="route-card">
+                        <h3>Trip Details</h3>
+                        <div class="route-timeline">
+                            <div class="timeline-item">
+                                <span class="dot pickup-dot"></span>
+                                <div>
+                                    <small>Pickup Location</small>
+                                    <p id="summaryPickup">Loading...</p>
+                                </div>
+                            </div>
+                            <div class="timeline-connector"></div>
+                            <div class="timeline-item">
+                                <span class="dot dropoff-dot"></span>
+                                <div>
+                                    <small>Drop-off Location</small>
+                                    <p id="summaryDropoff">Loading...</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="trip-meta">
+                            <div><strong>Date:</strong> <span id="summaryDate">-</span></div>
+                            <div><strong>Time:</strong> <span id="summaryTime">-</span></div>
+                            <div><strong>Estimated Distance:</strong> ~12.4 miles</div>
+                            <div><strong>Estimated Duration:</strong> 35 - 45 mins</div>
+                        </div>
+
+                        <div class="map-simulation">
+                            <div class="map-overlay-badge">Live Route Track Active</div>
+                            <div class="map-placeholder-graphic">
+                                <div class="route-line-anim"></div>
+                                <span class="pin pickup">📍 Pickup</span>
+                                <span class="pin dropoff">🏁 Drop-off</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="pricing-container">
+                        <h3>Select Vehicle Tier</h3>
+                        
+                        <div class="price-card" data-tier="Executive Sedan" data-price="£135">
+                            <div class="price-info">
+                                <h4>Executive Sedan <span class="badge">Most Popular</span></h4>
+                                <p>Mercedes E-Class or similar. Up to 3 passengers, 2 bags. Includes meet & greet.</p>
+                            </div>
+                            <div class="price-action">
+                                <span class="price-tag">£135</span>
+                                <button class="select-tier-btn">Select & Reserve</button>
+                            </div>
+                        </div>
+
+                        <div class="price-card" data-tier="Grand SUV" data-price="£180">
+                            <div class="price-info">
+                                <h4>Grand SUV</h4>
+                                <p>Mercedes V-Class or Range Rover. Up to 6 passengers, spacious luggage capacity.</p>
+                            </div>
+                            <div class="price-action">
+                                <span class="price-tag">£180</span>
+                                <button class="select-tier-btn">Select & Reserve</button>
+                            </div>
+                        </div>
+
+                        <div class="price-card" data-tier="VIP Chauffeur" data-price="£250">
+                            <div class="price-info">
+                                <h4>VIP Luxury Chauffeur</h4>
+                                <p>Mercedes S-Class or Rolls-Royce styling. Elite protection-trained driver, privacy glass.</p>
+                            </div>
+                            <div class="price-action">
+                                <span class="price-tag">£250</span>
+                                <button class="select-tier-btn">Select & Reserve</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2026 Elite Voyage Private Transportation. Designed for Excellence.</p>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>
